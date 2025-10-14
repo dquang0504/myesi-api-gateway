@@ -1,2 +1,2 @@
 # myesi-api-gateway
-Api gateway service for MyESI
+FastAPI-based gateway handling authentication (JWT), rate limiting, request analytics, routing, and enforcing HTTPS/TLS.
