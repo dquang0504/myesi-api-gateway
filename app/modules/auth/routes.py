@@ -1,4 +1,3 @@
-
 """
 Authentication module routes.
 Handles login and registration endpoints.
@@ -7,6 +6,7 @@ Handles login and registration endpoints.
 from fastapi import APIRouter
 
 router = APIRouter()
+
 
 @router.get("/test")
 async def test_auth():
