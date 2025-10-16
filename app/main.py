@@ -15,10 +15,9 @@ logger = setup_logger()
 app = FastAPI(title="MyESI API Gateway", version="1.0.0")
 
 # ---- Middleware: CORS ----
-# Allow frontend and other microservices to make cross-origin requests.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all during dev; restrict later
+    allow_origins=["*"],  # Allow all during development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,7 +25,6 @@ app.add_middleware(
 
 
 # ---- Middleware: Request Logging ----
-# Logs every request and response status for observability.
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info(f"{request.method} {request.url}")
@@ -36,7 +34,6 @@ async def log_requests(request: Request, call_next):
 
 
 # ---- Register Routers ----
-# Each module handles a specific feature or service.
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 
 
