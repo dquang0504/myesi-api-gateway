@@ -23,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # ---- Middleware: Request Logging ----
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -31,8 +32,10 @@ async def log_requests(request: Request, call_next):
     logger.info(f"{response.status_code} {request.url}")
     return response
 
+
 # ---- Register Routers ----
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+
 
 # ---- Healthcheck Endpoint ----
 @app.get("/")

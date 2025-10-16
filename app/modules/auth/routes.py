@@ -23,7 +23,11 @@ def get_db():
 @router.post("/register", response_model=schemas.UserCreate)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
-    existing_user = db.query(service.models.User).filter(service.models.User.email == user.email).first()
+    existing_user = (
+        db.query(service.models.User)
+        .filter(service.models.User.email == user.email)
+        .first()
+    )
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     return service.create_user(db, user)
@@ -34,7 +38,9 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     """Authenticate user and return access and refresh tokens."""
     tokens = service.login_user(db, user.username, user.password)
     if not tokens:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        )
     return tokens
 
 
