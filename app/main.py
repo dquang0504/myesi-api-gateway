@@ -10,3 +10,6 @@ app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 @app.get("/")
 def root():
     return {"status": "ok", "service": "api-gateway"}
+
+
+
