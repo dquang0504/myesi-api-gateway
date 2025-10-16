@@ -1,0 +1,10 @@
+services:
+  gateway:
+    build: .
+    container_name: myesi_gateway
+    volumes:
+      - .:/app
+      - ./certs:/app/certs
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
