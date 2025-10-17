@@ -3,57 +3,56 @@ Authentication module routes.
 Handles registration, login, and token refresh endpoints.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.core.database import SessionLocal
-from app.modules.auth import schemas, service
+from fastapi import APIRouter, HTTPException, Request
+import httpx
 
 router = APIRouter()
 
+# URL of user-service
+USER_SERVICE_URL = "http://user-service:8001"
 
-def get_db():
-    """Dependency to get database session."""
-    db = SessionLocal()
+# ----- REGISTER -----
+@router.post("/register")
+async def register_user(request: Request):
+    """Forward register request to User Service."""
     try:
-        yield db
-    finally:
-        db.close()
+        payload = await request.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.post(f"{USER_SERVICE_URL}/api/users/register", json=payload)
+            print(payload)
+        return res.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
 
 
-@router.post("/register", response_model=schemas.UserCreate)
-def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    """Register a new user."""
-    existing_user = (
-        db.query(service.models.User)
-        .filter(service.models.User.email == user.email)
-        .first()
-    )
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return service.create_user(db, user)
+# ----- LOGIN -----
+@router.post("/login")
+async def login_user(request: Request):
+    """Forward login request to User Service."""
+    try:
+        payload = await request.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.post(f"{USER_SERVICE_URL}/api/users/login", json=payload)
+        return res.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
 
 
-@router.post("/login", response_model=schemas.Token)
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    """Authenticate user and return access and refresh tokens."""
-    tokens = service.login_user(db, user.username, user.password)
-    if not tokens:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-        )
-    return tokens
+# ----- REFRESH TOKEN -----
+@router.post("/refresh-token")
+async def refresh_token(request: Request):
+    """Forward refresh-token request to User Service."""
+    try:
+        payload = await request.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.post(f"{USER_SERVICE_URL}/api/users/refresh-token", json=payload)
+        return res.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
 
 
-@router.post("/refresh-token", response_model=schemas.Token)
-def refresh_token(token_data: schemas.RefreshToken):
-    """Refresh access token using the refresh token."""
-    new_access = service.refresh_access_token(token_data.refresh_token)
-    if not new_access:
-        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
-    return {"access_token": new_access, "token_type": "bearer"}
-
-
+# ----- HEALTHCHECK -----
 @router.get("/test")
 async def test_auth():
-    """Simple endpoint to verify auth module routing works."""
-    return {"msg": "Auth route works!"}
+    """Healthcheck endpoint"""
+    return {"msg": "API Gateway auth forwarding working!"}
