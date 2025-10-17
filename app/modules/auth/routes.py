@@ -11,6 +11,7 @@ router = APIRouter()
 # URL of user-service
 USER_SERVICE_URL = "http://user-service:8001"
 
+
 # ----- REGISTER -----
 @router.post("/register")
 async def register_user(request: Request):
@@ -18,11 +19,15 @@ async def register_user(request: Request):
     try:
         payload = await request.json()
         async with httpx.AsyncClient() as client:
-            res = await client.post(f"{USER_SERVICE_URL}/api/users/register", json=payload)
+            res = await client.post(
+                f"{USER_SERVICE_URL}/api/users/register", json=payload
+            )
             print(payload)
         return res.json()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
 
 
 # ----- LOGIN -----
@@ -35,7 +40,9 @@ async def login_user(request: Request):
             res = await client.post(f"{USER_SERVICE_URL}/api/users/login", json=payload)
         return res.json()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
 
 
 # ----- REFRESH TOKEN -----
@@ -45,10 +52,14 @@ async def refresh_token(request: Request):
     try:
         payload = await request.json()
         async with httpx.AsyncClient() as client:
-            res = await client.post(f"{USER_SERVICE_URL}/api/users/refresh-token", json=payload)
+            res = await client.post(
+                f"{USER_SERVICE_URL}/api/users/refresh-token", json=payload
+            )
         return res.json()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
 
 
 # ----- HEALTHCHECK -----
