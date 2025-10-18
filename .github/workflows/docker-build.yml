@@ -12,7 +12,9 @@ jobs:
     docker-build:
         runs-on: ubuntu-latest
         # Only runs if build-test passes
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        if: >
+            (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+            (github.event_name == 'push')
 
         steps:
             # ---- Checkout code ----
