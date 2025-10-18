@@ -2,7 +2,7 @@ name: Docker Build & Push
 
 on:
     workflow_run:
-        workflows: ["Build & Test Python"]
+        workflows: ["Build & Test Python CI"]
         types:
             - completed
 
