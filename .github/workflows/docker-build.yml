@@ -33,15 +33,15 @@ jobs:
               run: |
                 docker build \
                     --build-arg PIP_CACHE_DIR=~/.cache/pip \
-                    -t myesi-api-gateway:${{ github.sha }} .
+                    -t ${{ secrets.DOCKER_USERNAME }}/myesi-api-gateway:${{ github.sha }} .
 
             # ---- Tag image latest ----
             - name: Tag Docker image as latest
-              run: docker tag myesi-api-gateway:${{ github.sha }} myesi-api-gateway:latest
+              run: docker tag ${{ secrets.DOCKER_USERNAME }}/myesi-api-gateway:${{ github.sha }} myesi-api-gateway:latest
 
             # ---- Push images ----
             - name: Push Docker images to registry
               run: |
-                docker push myesi-api-gateway:${{ github.sha }}
-                docker push myesi-api-gateway:latest
+                docker push ${{ secrets.DOCKER_USERNAME }}/myesi-api-gateway:${{ github.sha }}
+                docker push ${{ secrets.DOCKER_USERNAME }}/myesi-api-gateway:latest
             
