@@ -37,7 +37,7 @@ jobs:
 
             # ---- Tag image latest ----
             - name: Tag Docker image as latest
-              run: docker tag ${{ secrets.DOCKER_USERNAME }}/myesi-api-gateway:${{ github.sha }} myesi-api-gateway:latest
+              run: docker tag ${{ secrets.DOCKER_USERNAME }}/myesi-api-gateway:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myesi-api-gateway:latest
 
             # ---- Push images ----
             - name: Push Docker images to registry
