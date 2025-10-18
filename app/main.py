@@ -12,9 +12,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi import _rate_limit_exceeded_handler
 
 from app.utils.logger import setup_logger
-from app.core.config import settings
 from app.core.redis_client import get_redis
-from app.core.limiter import limiter  # ✅ moved limiter to avoid circular import
+from app.core.limiter import limiter  # moved limiter to avoid circular import
 from app.modules.auth.routes import router as auth_router
 
 
@@ -49,6 +48,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # --------------------------------------------------------
 # Startup & Shutdown Events
 # --------------------------------------------------------
@@ -77,21 +77,27 @@ async def analytics_and_logging_middleware(request: Request, call_next):
     """Tracks request latency, logs info, and updates Redis analytics."""
     start = time.time()
     request_id = str(uuid.uuid4())
-    client_ip = request.client.host if request.client else request.headers.get("x-forwarded-for", "unknown")
+    client_ip = (
+        request.client.host
+        if request.client
+        else request.headers.get("x-forwarded-for", "unknown")
+    )
 
     try:
         response = await call_next(request)
     except Exception:
         latency = time.time() - start
-        logger.info({
-            "event": "request",
-            "request_id": request_id,
-            "method": request.method,
-            "path": request.url.path,
-            "status": 500,
-            "latency_ms": int(latency * 1000),
-            "client_ip": client_ip,
-        })
+        logger.info(
+            {
+                "event": "request",
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status": 500,
+                "latency_ms": int(latency * 1000),
+                "client_ip": client_ip,
+            }
+        )
         try:
             r = app.state.redis
             r.incr(f"stats:hits:{request.url.path}")
@@ -103,15 +109,17 @@ async def analytics_and_logging_middleware(request: Request, call_next):
     latency = time.time() - start
     status = response.status_code
 
-    logger.info({
-        "event": "request",
-        "request_id": request_id,
-        "method": request.method,
-        "path": request.url.path,
-        "status": status,
-        "latency_ms": int(latency * 1000),
-        "client_ip": client_ip,
-    })
+    logger.info(
+        {
+            "event": "request",
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status": status,
+            "latency_ms": int(latency * 1000),
+            "client_ip": client_ip,
+        }
+    )
 
     try:
         r = app.state.redis
@@ -127,6 +135,7 @@ async def analytics_and_logging_middleware(request: Request, call_next):
 # Register Routers
 # --------------------------------------------------------
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+
 
 # --------------------------------------------------------
 # Healthcheck Endpoint
