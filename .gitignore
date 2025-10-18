@@ -3,3 +3,5 @@ certs/
 venv/
 .ruff_cache/
 *.pyc
+.secrets
+__pycache__/

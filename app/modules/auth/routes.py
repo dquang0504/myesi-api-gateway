@@ -5,6 +5,7 @@ Handles registration, login, and token refresh endpoints.
 
 from fastapi import APIRouter, HTTPException, Request
 import httpx
+from app.core.limiter import limiter
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ USER_SERVICE_URL = "http://user-service:8001"
 
 # ----- REGISTER -----
 @router.post("/register")
+@limiter.limit("5/minute")
 async def register_user(request: Request):
     """Forward register request to User Service."""
     try:
@@ -64,6 +66,6 @@ async def refresh_token(request: Request):
 
 # ----- HEALTHCHECK -----
 @router.get("/test")
-async def test_auth():
-    """Healthcheck endpoint"""
-    return {"msg": "API Gateway auth forwarding working!"}
+@limiter.limit("5/minute")
+async def test_auth(request: Request):  # ✅ added request argument
+    return {"msg": "Auth route works!"}
