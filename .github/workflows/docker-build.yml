@@ -5,6 +5,8 @@ on:
         workflows: ["Build & Test Python CI"]
         types:
             - completed
+    push:
+        branches: [develop, main]
 
 jobs:
     docker-build:
