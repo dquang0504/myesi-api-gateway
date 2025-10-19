@@ -63,19 +63,19 @@ async def refresh_token(request: Request):
             status_code=500, detail=f"Gateway → User Service error: {str(e)}"
         )
 
+
 # ----- ADMIN DASHBOARD ACCESS -----
 @router.get("/admin/dashboard", dependencies=[Depends(require_role(["admin"]))])
 async def admin_dashboard(request: Request):
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(
-                f"{USER_SERVICE_URL}/api/admin/dashboard"
-            )
+            res = await client.get(f"{USER_SERVICE_URL}/api/admin/dashboard")
         return res.json()
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Gateway → User Service error: {str(e)}"
         )
+
 
 # ----- ADMIN GET ALL USERS -----
 @router.get("/admin/users/", dependencies=[Depends(require_role(["admin"]))])
@@ -87,9 +87,9 @@ async def get_all_users(request: Request):
         return res.json()
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Gateway → User Service error: {str(e)}"
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
         )
+
 
 # ----- HEALTHCHECK -----
 @router.get("/test")
