@@ -3,9 +3,10 @@ Authentication module routes.
 Handles registration, login, and token refresh endpoints.
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 import httpx
 from app.core.limiter import limiter
+from app.utils.security import require_role
 
 router = APIRouter()
 
@@ -24,7 +25,6 @@ async def register_user(request: Request):
             res = await client.post(
                 f"{USER_SERVICE_URL}/api/users/register", json=payload
             )
-            print(payload)
         return res.json()
     except Exception as e:
         raise HTTPException(
@@ -63,9 +63,36 @@ async def refresh_token(request: Request):
             status_code=500, detail=f"Gateway → User Service error: {str(e)}"
         )
 
+# ----- ADMIN DASHBOARD ACCESS -----
+@router.get("/admin/dashboard", dependencies=[Depends(require_role(["admin"]))])
+async def admin_dashboard(request: Request):
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(
+                f"{USER_SERVICE_URL}/api/admin/dashboard"
+            )
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
+
+# ----- ADMIN GET ALL USERS -----
+@router.get("/admin/users/", dependencies=[Depends(require_role(["admin"]))])
+async def get_all_users(request: Request):
+    """Forward request to User Service to retrieve all users."""
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(f"{USER_SERVICE_URL}/api/admin/users")
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Gateway → User Service error: {str(e)}"
+        )
 
 # ----- HEALTHCHECK -----
 @router.get("/test")
 @limiter.limit("5/minute")
-async def test_auth(request: Request):  # ✅ added request argument
+async def test_auth(request: Request):  # added request argument
     return {"msg": "Auth route works!"}
