@@ -2,7 +2,9 @@ services:
   gateway:
     build: .
     environment:
-      REDIS_URL: 
+      REDIS_URL: localhost:6379
+      JWT_SECRET: myesi_secret_key
+      JWT_ALGORITHM: HS256
     container_name: myesi_gateway
     volumes:
       - .:/app
