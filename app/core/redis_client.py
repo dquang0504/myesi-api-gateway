@@ -1,18 +1,16 @@
-from redis import Redis
+import redis
 from app.core.config import settings
-from datetime import time
 
 _redis = None
 
-
-def get_redis() -> Redis:
+def get_redis():
     global _redis
     if _redis is None:
-        for _ in range(5):
-            try:
-                _redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
-                _redis.ping()
-                break
-            except ConnectionError:
-                time.sleep(1)
+        try:
+            _redis = redis.StrictRedis.from_url(settings.REDIS_URL)
+            _redis.ping()  # test connection
+            print("✅ Redis connected successfully!")
+        except Exception as e:
+            print("⚠️ Redis connection failed, continuing without Redis:", e)
+            _redis = None
     return _redis
