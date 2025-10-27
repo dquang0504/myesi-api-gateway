@@ -3,7 +3,6 @@ Main entrypoint for the MyESI API Gateway service.
 Handles app initialization, rate limiting, analytics middleware, and router registration.
 """
 
-from middleware.rbac import rbac_middleware
 import time
 import uuid
 from fastapi import FastAPI, Request
@@ -19,7 +18,6 @@ from app.modules.auth.routes import router as auth_router
 from app.modules.sbom.routes import router as sbom_router
 
 app = FastAPI()
-app.middleware("http")(rbac_middleware)
 
 
 # --------------------------------------------------------

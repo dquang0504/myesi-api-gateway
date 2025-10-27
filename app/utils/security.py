@@ -28,7 +28,10 @@ def verify_jwt(request: Request):
     """
     token = get_token_from_header(request)
     try:
+        print(SECRET_KEY)
+        print(ALGORITHM)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
         exp = payload.get("exp")
         if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(
             timezone.utc
