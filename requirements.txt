@@ -1,4 +1,5 @@
 alembic==1.17.0
+annotated-doc==0.0.3
 annotated-types==0.7.0
 anyio==4.11.0
 async-timeout==5.0.1
@@ -12,7 +13,8 @@ Deprecated==1.2.18
 dnspython==2.8.0
 ecdsa==0.19.1
 email-validator==2.3.0
-fastapi==0.119.0
+exceptiongroup==1.3.0
+fastapi==0.120.0
 greenlet==3.2.4
 h11==0.16.0
 httpcore==1.0.9
@@ -27,7 +29,7 @@ packaging==25.0
 passlib==1.7.4
 psycopg2-binary==2.9.11
 pyasn1==0.6.1
-pydantic==2.12.2
+pydantic==2.12.3
 pydantic-settings==2.11.0
 pydantic_core==2.41.4
 PyJWT==2.10.1

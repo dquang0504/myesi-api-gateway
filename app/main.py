@@ -17,6 +17,8 @@ from app.core.limiter import limiter  # moved limiter to avoid circular import
 from app.modules.auth.routes import router as auth_router
 from app.modules.sbom.routes import router as sbom_router
 
+app = FastAPI()
+
 
 # --------------------------------------------------------
 # Initialize Loguru logger
