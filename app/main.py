@@ -21,6 +21,7 @@ from app.utils.logger import setup_logger
 from app.core.redis_client import get_redis
 from app.core.limiter import limiter  # moved limiter to avoid circular import
 from app.modules.auth.routes import router as auth_router
+from app.modules.sbom.routes import router as sbom_router
 
 
 # --------------------------------------------------------
@@ -141,6 +142,7 @@ async def analytics_and_logging_middleware(request: Request, call_next):
 # Register Routers
 # --------------------------------------------------------
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+app.include_router(sbom_router, prefix="/api/sbom", tags=["SBOM"])
 
 
 # --------------------------------------------------------

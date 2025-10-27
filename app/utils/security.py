@@ -3,8 +3,7 @@ import os
 from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError, jwt
 
-# 🔑 JWT Configuration
-SECRET_KEY = os.getenv("JWT_SECRET", "myesi_secret_key")
+SECRET_KEY = os.getenv("SECRET_KEY", "replace-with-secure-key")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 
