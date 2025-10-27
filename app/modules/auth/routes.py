@@ -91,6 +91,24 @@ async def get_all_users(request: Request):
         )
 
 
+# ----- LOGOUT -----
+@router.post("/logout")
+async def logout_user(request: Request):
+    """Forward logout request to User Service."""
+    try:
+        # Forward along with Authorization header to let user-service know who log outs
+        headers = {"Authorization": request.headers.get("Authorization")}
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"{USER_SERVICE_URL}/api/users/logout", headers=headers
+            )
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
+
+
 # ----- HEALTHCHECK -----
 @router.get("/test")
 @limiter.limit("5/minute")
