@@ -3,7 +3,8 @@ import os
 
 
 class Settings(BaseSettings):
-    REDIS_URL: str = os.getenv("REDIS_URL", "localhost:6379")
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+
     JWT_SECRET: str = os.getenv("JWT_SECRET", "myesi_secret_key")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
 
