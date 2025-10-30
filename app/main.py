@@ -144,6 +144,7 @@ app.include_router(sbom_router, prefix="/api/sbom", tags=["SBOM"])
 app.include_router(vuln_router, prefix="/api/vuln", tags=["Vuln"])
 app.include_router(risk_router, prefix="/api/risk", tags=["Risk"])
 
+
 # --------------------------------------------------------
 # Healthcheck Endpoint
 # --------------------------------------------------------

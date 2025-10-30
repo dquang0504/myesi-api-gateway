@@ -23,7 +23,9 @@ async def health_check():
             res = await client.get(f"{VULN_SERVICE_URL}/api/vuln/health")
         return res.json()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway -> Vuln Service health error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> Vuln Service health error: {str(e)}"
+        )
 
 
 # ----- GET VULNS BY SBOM -----
@@ -36,7 +38,9 @@ async def get_vulns_by_sbom(sbom_id: str):
             res = await client.get(f"{VULN_SERVICE_URL}/api/vuln/{sbom_id}")
         return res.json()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway -> Vuln Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> Vuln Service error: {str(e)}"
+        )
 
 
 # ----- REFRESH -----
@@ -49,7 +53,9 @@ async def refresh_vuln(request: Request):
             res = await client.post(f"{VULN_SERVICE_URL}/api/vuln/refresh", json=body)
         return res.json()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway -> Vuln Service refresh error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> Vuln Service refresh error: {str(e)}"
+        )
 
 
 # ----- STREAM (SSE) -----
@@ -63,6 +69,7 @@ async def stream_vulnerabilities(request: Request):
     project_name = request.query_params.get("project_name")
     if not project_name:
         raise HTTPException(status_code=400, detail="project_name required")
+
     async def event_stream():
         # Giữ kết nối HTTP streaming tới vuln-service
         async with httpx.AsyncClient(timeout=None) as client:

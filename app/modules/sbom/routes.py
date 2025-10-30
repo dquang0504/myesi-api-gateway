@@ -68,7 +68,8 @@ async def list_sboms(request: Request):
         raise HTTPException(
             status_code=500, detail=f"Gateway -> SBOM Service upload error: {str(e)}"
         )
-        
+
+
 # ----- SHOW RECENT -----
 @router.get("/recent", dependencies=[Depends(require_role(["developer"]))])
 async def show_recent(request: Request):
@@ -77,15 +78,19 @@ async def show_recent(request: Request):
         # Lấy query params (project_name, limit, ...)
         params = dict(request.query_params)
 
-        logger.info(f"Forwarding /recent request to SBOM Service: {SBOM_SERVICE_URL}/api/sbom/recent with params {params}")
+        logger.info(
+            f"Forwarding /recent request to SBOM Service: {SBOM_SERVICE_URL}/api/sbom/recent with params {params}"
+        )
         async with httpx.AsyncClient() as client:
-            res = await client.get(f"{SBOM_SERVICE_URL}/api/sbom/recent", params=params, timeout=30.0)
-        logger.info(f"SBOM Service responded: status={res.status_code} content={res.text}")
+            res = await client.get(
+                f"{SBOM_SERVICE_URL}/api/sbom/recent", params=params, timeout=30.0
+            )
+        logger.info(
+            f"SBOM Service responded: status={res.status_code} content={res.text}"
+        )
         return res.json()
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Gateway -> SBOM Service recent list error: {str(e)}"
+            detail=f"Gateway -> SBOM Service recent list error: {str(e)}",
         )
-
-    

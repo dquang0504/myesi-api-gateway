@@ -41,12 +41,12 @@ async def login_user(request: Request, response: Response):
         payload = await request.json()
         async with httpx.AsyncClient() as client:
             res = await client.post(f"{USER_SERVICE_URL}/api/users/login", json=payload)
-            
+
         if "set-cookie" in res.headers:
             cookies = res.headers.get_list("set-cookie")
             for cookie in cookies:
                 response.headers.append("set-cookie", cookie)
-            
+
         return JSONResponse(content=res.json(), status_code=res.status_code)
     except Exception as e:
         raise HTTPException(
@@ -63,7 +63,9 @@ async def refresh_token(request: Request, response: Response):
         cookies = request.cookies
 
         async with httpx.AsyncClient(follow_redirects=True) as client:
-            res = await client.post(f"{USER_SERVICE_URL}/api/users/refresh-token", cookies=cookies)
+            res = await client.post(
+                f"{USER_SERVICE_URL}/api/users/refresh-token", cookies=cookies
+            )
 
         # Copy refreshed cookie (if any)
         if "set-cookie" in res.headers:
@@ -71,7 +73,9 @@ async def refresh_token(request: Request, response: Response):
 
         return JSONResponse(content=res.json(), status_code=res.status_code)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
 
 
 # ----- ADMIN DASHBOARD ACCESS -----
@@ -99,7 +103,8 @@ async def get_all_users(request: Request):
         raise HTTPException(
             status_code=500, detail=f"Gateway → User Service error: {str(e)}"
         )
-        
+
+
 # ----- ADMIN UPDATE USER -----
 @router.put("/admin/users/{user_id}", dependencies=[Depends(require_role(["admin"]))])
 async def update_user(request: Request, user_id: int):
