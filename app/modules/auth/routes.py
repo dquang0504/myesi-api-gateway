@@ -3,7 +3,8 @@ Authentication module routes.
 Handles registration, login, and token refresh endpoints.
 """
 
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, Response
+from fastapi.responses import JSONResponse
 import httpx
 from app.core.limiter import limiter
 from app.utils.security import require_role
@@ -34,13 +35,19 @@ async def register_user(request: Request):
 
 # ----- LOGIN -----
 @router.post("/login")
-async def login_user(request: Request):
+async def login_user(request: Request, response: Response):
     """Forward login request to User Service."""
     try:
         payload = await request.json()
         async with httpx.AsyncClient() as client:
             res = await client.post(f"{USER_SERVICE_URL}/api/users/login", json=payload)
-        return res.json()
+            
+        if "set-cookie" in res.headers:
+            cookies = res.headers.get_list("set-cookie")
+            for cookie in cookies:
+                response.headers.append("set-cookie", cookie)
+            
+        return JSONResponse(content=res.json(), status_code=res.status_code)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Gateway → User Service error: {str(e)}"
@@ -49,19 +56,22 @@ async def login_user(request: Request):
 
 # ----- REFRESH TOKEN -----
 @router.post("/refresh-token")
-async def refresh_token(request: Request):
-    """Forward refresh-token request to User Service."""
+async def refresh_token(request: Request, response: Response):
+    """Forward refresh-token request with cookies to User Service."""
     try:
-        payload = await request.json()
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                f"{USER_SERVICE_URL}/api/users/refresh-token", json=payload
-            )
-        return res.json()
+        # Forward cookies from client to User Service
+        cookies = request.cookies
+
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            res = await client.post(f"{USER_SERVICE_URL}/api/users/refresh-token", cookies=cookies)
+
+        # Copy refreshed cookie (if any)
+        if "set-cookie" in res.headers:
+            response.headers["set-cookie"] = res.headers["set-cookie"]
+
+        return JSONResponse(content=res.json(), status_code=res.status_code)
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
 
 
 # ----- ADMIN DASHBOARD ACCESS -----
@@ -89,24 +99,33 @@ async def get_all_users(request: Request):
         raise HTTPException(
             status_code=500, detail=f"Gateway → User Service error: {str(e)}"
         )
+        
+# ----- ADMIN UPDATE USER -----
+@router.put("/admin/users/{user_id}", dependencies=[Depends(require_role(["admin"]))])
+async def update_user(request: Request, user_id: int):
+    """Forward update user request to User Service."""
+    try:
+        payload = await request.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.put(
+                f"{USER_SERVICE_URL}/api/admin/users/{user_id}",
+                json=payload,
+            )
+        return JSONResponse(content=res.json(), status_code=res.status_code)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Gateway → User Service error: {str(e)}",
+        )
 
 
 # ----- LOGOUT -----
 @router.post("/logout")
 async def logout_user(request: Request):
     """Forward logout request to User Service."""
-    try:
-        # Forward along with Authorization header to let user-service know who log outs
-        headers = {"Authorization": request.headers.get("Authorization")}
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                f"{USER_SERVICE_URL}/api/users/logout", headers=headers
-            )
-        return res.json()
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
-        )
+    async with httpx.AsyncClient() as client:
+        res = await client.post(f"{USER_SERVICE_URL}/api/users/logout")
+    return res.json()
 
 
 # ----- HEALTHCHECK -----
