@@ -16,6 +16,8 @@ from app.core.redis_client import get_redis
 from app.core.limiter import limiter  # moved limiter to avoid circular import
 from app.modules.auth.routes import router as auth_router
 from app.modules.sbom.routes import router as sbom_router
+from app.modules.vuln.routes import router as vuln_router
+from app.modules.risk.routes import router as risk_router
 
 app = FastAPI()
 
@@ -139,6 +141,8 @@ async def analytics_and_logging_middleware(request: Request, call_next):
 # --------------------------------------------------------
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(sbom_router, prefix="/api/sbom", tags=["SBOM"])
+app.include_router(vuln_router, prefix="/api/vuln", tags=["Vuln"])
+app.include_router(risk_router, prefix="/api/risk", tags=["Risk"])
 
 
 # --------------------------------------------------------
