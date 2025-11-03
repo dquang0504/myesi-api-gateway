@@ -18,6 +18,7 @@ from app.modules.auth.routes import router as auth_router
 from app.modules.sbom.routes import router as sbom_router
 from app.modules.vuln.routes import router as vuln_router
 from app.modules.risk.routes import router as risk_router
+from app.modules.report.routes import router as report_router
 
 app = FastAPI()
 
@@ -143,6 +144,7 @@ app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(sbom_router, prefix="/api/sbom", tags=["SBOM"])
 app.include_router(vuln_router, prefix="/api/vuln", tags=["Vuln"])
 app.include_router(risk_router, prefix="/api/risk", tags=["Risk"])
+app.include_router(report_router, prefix="/api/report", tags=["Report"])
 
 
 # --------------------------------------------------------
