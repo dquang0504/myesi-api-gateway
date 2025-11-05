@@ -11,7 +11,7 @@ from app.utils.security import require_role
 router = APIRouter()
 
 # URL of vuln-service (chạy trong Docker)
-VULN_SERVICE_URL = "http://vuln-service:8003"
+VULN_SERVICE_URL = "http://vulnerability-service:8003"
 
 
 # ----- HEALTH CHECK -----
@@ -26,6 +26,39 @@ async def health_check():
         raise HTTPException(
             status_code=500, detail=f"Gateway -> Vuln Service health error: {str(e)}"
         )
+
+
+# ----- REFRESH -----
+@router.get("/stream")
+async def stream_vulnerabilities(request: Request):
+    project_name = request.query_params.get("project_name")
+    if not project_name:
+        raise HTTPException(status_code=400, detail="project_name required")
+
+    async def event_stream():
+        async with httpx.AsyncClient(timeout=None) as client:
+            # giữ kết nối tới vuln-service SSE
+            async with client.stream(
+                "GET",
+                f"{VULN_SERVICE_URL}/api/vuln/stream",
+                params={"project_name": project_name},
+                headers={"X-From-Gateway": "true"},  # đánh dấu request
+            ) as res:
+                async for line in res.aiter_lines():
+                    if await request.is_disconnected():
+                        print("❌ Client disconnected")
+                        break
+                    if line.strip():
+                        yield f"{line}\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 # ----- GET VULNS BY SBOM -----
@@ -58,30 +91,30 @@ async def refresh_vuln(request: Request):
         )
 
 
-# ----- STREAM (SSE) -----
-@router.get("/stream")
-async def stream_vulnerabilities(request: Request):
-    """
-    Forward SSE stream to frontend.
-    Giữ kết nối giữa client và vuln-service.
-    """
+# # ----- STREAM (SSE) -----
+# @router.get("/stream")
+# async def stream_vulnerabilities(request: Request):
+#     """
+#     Forward SSE stream to frontend.
+#     Giữ kết nối giữa client và vuln-service.
+#     """
 
-    project_name = request.query_params.get("project_name")
-    if not project_name:
-        raise HTTPException(status_code=400, detail="project_name required")
+#     project_name = request.query_params.get("project_name")
+#     if not project_name:
+#         raise HTTPException(status_code=400, detail="project_name required")
 
-    async def event_stream():
-        # Giữ kết nối HTTP streaming tới vuln-service
-        async with httpx.AsyncClient(timeout=None) as client:
-            async with client.stream(
-                "GET",
-                f"{VULN_SERVICE_URL}/api/vuln/stream",
-                params={"project_name": project_name},
-            ) as res:
-                async for line in res.aiter_lines():
-                    if await request.is_disconnected():
-                        break
-                    if line.strip():
-                        yield f"{line}\n"
+#     async def event_stream():
+#         # Giữ kết nối HTTP streaming tới vuln-service
+#         async with httpx.AsyncClient(timeout=None) as client:
+#             async with client.stream(
+#                 "GET",
+#                 f"{VULN_SERVICE_URL}/api/vuln/stream",
+#                 params={"project_name": project_name},
+#             ) as res:
+#                 async for line in res.aiter_lines():
+#                     if await request.is_disconnected():
+#                         break
+#                     if line.strip():
+#                         yield f"{line}\n"
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+#     return StreamingResponse(event_stream(), media_type="text/event-stream")

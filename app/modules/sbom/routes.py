@@ -94,3 +94,72 @@ async def show_recent(request: Request):
             status_code=500,
             detail=f"Gateway -> SBOM Service recent list error: {str(e)}",
         )
+
+
+# ===== PROJECTS =====
+projects_router = APIRouter(dependencies=[Depends(require_role(["developer"]))])
+
+
+@projects_router.get("/")
+async def list_projects(request: Request):
+    try:
+        params = dict(request.query_params)
+        async with httpx.AsyncClient() as client:
+            res = await client.get(f"{SBOM_SERVICE_URL}/api/projects", params=params)
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> SBOM Service errorrrr: {e}"
+        )
+
+
+@projects_router.get("/{project_id}")
+async def get_project(project_id: int):
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(f"{SBOM_SERVICE_URL}/api/projects/{project_id}")
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> SBOM Service error: {e}"
+        )
+
+
+@projects_router.post("/")
+async def create_project(request: Request):
+    try:
+        data = await request.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.post(f"{SBOM_SERVICE_URL}/api/projects", json=data)
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> SBOM Service error: {e}"
+        )
+
+
+@projects_router.put("/{project_id}")
+async def update_project(project_id: int, request: Request):
+    try:
+        data = await request.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.put(
+                f"{SBOM_SERVICE_URL}/api/projects/{project_id}", json=data
+            )
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> SBOM Service error: {e}"
+        )
+
+
+@projects_router.delete("/{project_id}")
+async def delete_project(project_id: int):
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.delete(f"{SBOM_SERVICE_URL}/api/projects/{project_id}")
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> SBOM Service error: {e}"
+        )
