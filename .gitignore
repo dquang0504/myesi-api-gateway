@@ -5,3 +5,4 @@ venv/
 *.pyc
 .secrets
 __pycache__/
+.aider*

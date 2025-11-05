@@ -72,3 +72,47 @@ async def get_vulns_by_sbom(sbom_id: str):
         raise HTTPException(
             status_code=500, detail=f"Gateway -> Vuln Service error: {str(e)}"
         )
+
+
+# ----- REFRESH -----
+@router.post("/refresh", dependencies=[Depends(require_role(["developer"]))])
+async def refresh_vuln(request: Request):
+    """Forward vulnerability refresh request."""
+    try:
+        body = await request.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.post(f"{VULN_SERVICE_URL}/api/vuln/refresh", json=body)
+        return res.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gateway -> Vuln Service refresh error: {str(e)}"
+        )
+
+
+# ----- STREAM (SSE) -----
+@router.get("/stream")
+async def stream_vulnerabilities(request: Request):
+    """
+    Forward SSE stream to frontend.
+    Giữ kết nối giữa client và vuln-service.
+    """
+
+    project_name = request.query_params.get("project_name")
+    if not project_name:
+        raise HTTPException(status_code=400, detail="project_name required")
+
+    async def event_stream():
+        # Giữ kết nối HTTP streaming tới vuln-service
+        async with httpx.AsyncClient(timeout=None) as client:
+            async with client.stream(
+                "GET",
+                f"{VULN_SERVICE_URL}/api/vuln/stream",
+                params={"project_name": project_name},
+            ) as res:
+                async for line in res.aiter_lines():
+                    if await request.is_disconnected():
+                        break
+                    if line.strip():
+                        yield f"{line}\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")

@@ -3,8 +3,7 @@ import os
 from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError, jwt
 
-# 🔑 JWT Configuration
-SECRET_KEY = os.getenv("JWT_SECRET", "myesi_secret_key")
+SECRET_KEY = os.getenv("SECRET_KEY", "replace-with-secure-key")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 
@@ -29,7 +28,10 @@ def verify_jwt(request: Request):
     """
     token = get_token_from_header(request)
     try:
+        print(SECRET_KEY)
+        print(ALGORITHM)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
         exp = payload.get("exp")
         if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
             raise HTTPException(
