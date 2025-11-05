@@ -18,6 +18,13 @@ from app.modules.auth.routes import router as auth_router
 from app.modules.sbom.routes import router as sbom_router
 from app.modules.vuln.routes import router as vuln_router
 from app.modules.risk.routes import router as risk_router
+# main.py (or wherever FastAPI app is created)
+from fastapi import FastAPI
+from routes.proxy_routes import router as proxy_router
+
+app = FastAPI(title="MyESI API Gateway")
+app.include_router(proxy_router)
+
 
 app = FastAPI()
 
