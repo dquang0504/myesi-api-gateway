@@ -1,14 +1,16 @@
 services:
   gateway:
     build: .
+    container_name: myesi_gateway
+    ports:
+      - "8000:8000"
     environment:
       REDIS_URL: localhost:6379
       JWT_SECRET: myesi_secret_key
       JWT_ALGORITHM: HS256
-    container_name: myesi_gateway
+      RISK_SERVICE_URL: https://risk.myesi.com       # 👈 real deployed URL
+      REPORT_SERVICE_URL: https://report.myesi.com   # 👈 real deployed URL
     volumes:
       - .:/app
       - ./certs:/app/certs
       - ./logs:/app/logs
-    ports:
-      - "8000:8000"
