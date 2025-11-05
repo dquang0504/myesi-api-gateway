@@ -139,6 +139,7 @@ async def logout_user(request: Request):
 async def test_auth(request: Request):  # added request argument
     return {"msg": "Auth route works!"}
 
+
 # ----- GITHUB OAUTH FORWARD -----
 @router.get("/github/connect")
 async def github_connect(request: Request):
@@ -148,7 +149,9 @@ async def github_connect(request: Request):
             res = await client.get(f"{USER_SERVICE_URL}/auth/github/connect")
         return JSONResponse(content=res.json(), status_code=res.status_code)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
 
 
 @router.get("/github/callback")
@@ -171,13 +174,13 @@ async def github_callback(request: Request):
             )
 
         return Response(
-            content=res.content,
-            status_code=res.status_code,
-            headers=res.headers
+            content=res.content, status_code=res.status_code, headers=res.headers
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )
 
 
 @router.get("/github/repos")
@@ -191,9 +194,10 @@ async def github_repos(request: Request, token: str = None):
         cookies = request.cookies
         async with httpx.AsyncClient() as client:
             res = await client.get(
-                f"{USER_SERVICE_URL}/auth/github/repos",
-                cookies=cookies
+                f"{USER_SERVICE_URL}/auth/github/repos", cookies=cookies
             )
         return JSONResponse(content=res.json(), status_code=res.status_code)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gateway → User Service error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Gateway → User Service error: {str(e)}"
+        )

@@ -27,6 +27,7 @@ async def health_check():
             status_code=500, detail=f"Gateway -> Vuln Service health error: {str(e)}"
         )
 
+
 # ----- REFRESH -----
 @router.get("/stream")
 async def stream_vulnerabilities(request: Request):
@@ -59,6 +60,7 @@ async def stream_vulnerabilities(request: Request):
         },
     )
 
+
 # ----- GET VULNS BY SBOM -----
 @router.get("/{sbom_id}", dependencies=[Depends(require_role(["developer"]))])
 async def get_vulns_by_sbom(sbom_id: str):
@@ -89,30 +91,30 @@ async def refresh_vuln(request: Request):
         )
 
 
-# ----- STREAM (SSE) -----
-@router.get("/stream")
-async def stream_vulnerabilities(request: Request):
-    """
-    Forward SSE stream to frontend.
-    Giữ kết nối giữa client và vuln-service.
-    """
+# # ----- STREAM (SSE) -----
+# @router.get("/stream")
+# async def stream_vulnerabilities(request: Request):
+#     """
+#     Forward SSE stream to frontend.
+#     Giữ kết nối giữa client và vuln-service.
+#     """
 
-    project_name = request.query_params.get("project_name")
-    if not project_name:
-        raise HTTPException(status_code=400, detail="project_name required")
+#     project_name = request.query_params.get("project_name")
+#     if not project_name:
+#         raise HTTPException(status_code=400, detail="project_name required")
 
-    async def event_stream():
-        # Giữ kết nối HTTP streaming tới vuln-service
-        async with httpx.AsyncClient(timeout=None) as client:
-            async with client.stream(
-                "GET",
-                f"{VULN_SERVICE_URL}/api/vuln/stream",
-                params={"project_name": project_name},
-            ) as res:
-                async for line in res.aiter_lines():
-                    if await request.is_disconnected():
-                        break
-                    if line.strip():
-                        yield f"{line}\n"
+#     async def event_stream():
+#         # Giữ kết nối HTTP streaming tới vuln-service
+#         async with httpx.AsyncClient(timeout=None) as client:
+#             async with client.stream(
+#                 "GET",
+#                 f"{VULN_SERVICE_URL}/api/vuln/stream",
+#                 params={"project_name": project_name},
+#             ) as res:
+#                 async for line in res.aiter_lines():
+#                     if await request.is_disconnected():
+#                         break
+#                     if line.strip():
+#                         yield f"{line}\n"
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+#     return StreamingResponse(event_stream(), media_type="text/event-stream")

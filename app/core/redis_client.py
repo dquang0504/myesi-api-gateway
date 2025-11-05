@@ -3,6 +3,7 @@ from app.core.config import settings
 
 _redis = None
 
+
 def get_redis():
     global _redis
     if _redis is None:

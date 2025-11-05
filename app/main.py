@@ -15,11 +15,8 @@ from app.db.models import User
 from app.utils.logger import setup_logger
 from app.core.redis_client import get_redis
 from app.core.limiter import limiter  # moved limiter to avoid circular import
-from app.utils.security import verify_jwt
 from fastapi import HTTPException
-from jose import JWTError
 from app.modules.auth.routes import router as auth_router
-from app.modules.sbom.routes import router as sbom_router
 from app.modules.vuln.routes import router as vuln_router
 from app.modules.risk.routes import router as risk_router
 from app.modules.billing.routes import router as billing_router
@@ -54,7 +51,9 @@ app.add_middleware(SlowAPIMiddleware)
 # --------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://localhost:3000"],  # Allow all origins for now (restrict in prod)
+    allow_origins=[
+        "https://localhost:3000"
+    ],  # Allow all origins for now (restrict in prod)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -97,31 +96,36 @@ async def attach_user_middleware(request: Request, call_next):
 
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
-            payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+            payload = jwt.decode(
+                token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+            )
         elif "access_token" in request.cookies:
             token = request.cookies.get("access_token")
-            payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+            payload = jwt.decode(
+                token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+            )
 
         if payload:
             # Tạo instance User từ payload (chỉ lấy những field cần thiết)
             request.state.user = User(
                 id=payload.get("id"),
                 email=payload.get("sub"),
-                role=payload.get("role", "developer")
+                role=payload.get("role", "developer"),
             )
         else:
             request.state.user = None
 
-    except (HTTPException, JWTError) as e:
+    except (HTTPException, JWTError):
         request.state.user = None
 
-    print(request.state.user)
     response = await call_next(request)
     return response
+
 
 # --------------------------------------------------------
 # Analytics and Logging Middleware
 # --------------------------------------------------------
+
 
 @app.middleware("http")
 async def analytics_and_logging_middleware(request: Request, call_next):

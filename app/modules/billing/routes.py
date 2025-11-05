@@ -2,6 +2,7 @@
 Billing module routes.
 Forwards requests from API Gateway to Billing Service.
 """
+
 from app.utils.logger import setup_logger
 from fastapi import APIRouter, Depends, HTTPException, Request
 import httpx
@@ -13,8 +14,12 @@ logger = setup_logger()
 # URL of Billing Service
 BILLING_SERVICE_URL = "http://billing-service:8005"
 
+
 # ----- CREATE CHECKOUT SESSION -----
-@router.post("/create-checkout-session", dependencies=[Depends(require_role(["developer", "admin"]))])
+@router.post(
+    "/create-checkout-session",
+    dependencies=[Depends(require_role(["developer", "admin"]))],
+)
 async def create_checkout(request: Request):
     """
     Forward checkout request to Billing Service.
@@ -43,7 +48,8 @@ async def create_checkout(request: Request):
             status_code=500,
             detail=f"Gateway -> Billing Service checkout error: {str(e)}",
         )
-        
+
+
 # ----- STRIPE WEBHOOK -----
 @router.post("/webhook")
 async def stripe_webhook(request: Request):
@@ -74,15 +80,18 @@ async def stripe_webhook(request: Request):
             status_code=500,
             detail=f"Gateway -> Billing Service webhook error: {str(e)}",
         )
-        
+
+
 # ----- GET LATEST SUBSCRIPTION -----
-@router.get("/latest-subscription", dependencies=[Depends(require_role(["developer", "admin"]))])
+@router.get(
+    "/latest-subscription", dependencies=[Depends(require_role(["developer", "admin"]))]
+)
 async def get_latest_subscription(request: Request):
     """Forward request to Billing Service to fetch user's latest subscription."""
     try:
         user = getattr(request.state, "user", None)
         headers = {"X-User-ID": str(user.id)} if user else {}
-        
+
         print("User: ", user)
 
         async with httpx.AsyncClient() as client:
@@ -96,7 +105,8 @@ async def get_latest_subscription(request: Request):
     except Exception as e:
         logger.error(f"Error forwarding /latest-subscription: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Gateway error: {str(e)}")
-        
+
+
 # ----- GET SUBSCRIPTION PLANS -----
 @router.get("/plans", dependencies=[Depends(require_role(["developer", "admin"]))])
 async def get_subscription_plans(request: Request):

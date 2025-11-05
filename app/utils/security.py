@@ -33,7 +33,9 @@ def verify_jwt(request: Request):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
         exp = payload.get("exp")
-        if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
+        if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(
+            timezone.utc
+        ):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token expired",
@@ -52,6 +54,7 @@ def require_role(required_roles: list):
     Example:
         @router.get("/admin", dependencies=[Depends(require_role(["admin"]))])
     """
+
     def wrapper(token_data=Depends(verify_jwt)):
         user_role = token_data.get("role")
         if not user_role:
