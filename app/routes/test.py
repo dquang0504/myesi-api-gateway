@@ -4,12 +4,15 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/api", tags=["api"])
 
+
 class OrderIn(BaseModel):
     amount: int
+
 
 @router.get("/health")
 async def health():
     return {"status": "ok"}
+
 
 @router.post("/orders")
 async def create_order(payload: OrderIn, x_user_id: str | None = Header(None)):

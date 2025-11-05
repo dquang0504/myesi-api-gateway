@@ -38,8 +38,9 @@ load_dotenv()
 
 # Logging
 logger = setup_logger()
-logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
+)
 
 # FastAPI app
 app = FastAPI(title="MyESI API Gateway", version="1.0.0")
@@ -66,6 +67,7 @@ app.include_router(vuln_router, prefix="/api/vuln", tags=["Vuln"])
 app.include_router(risk_router, prefix="/api/risk", tags=["Risk"])
 app.include_router(test_router.router)
 
+
 # Startup & Shutdown
 @app.on_event("startup")
 async def startup_event():
@@ -75,13 +77,16 @@ async def startup_event():
         logger.info({"event": "startup", "msg": "Redis client initialized"})
     except Exception:
         logger.warning("Redis init failed")
-    
+
     # Elasticsearch connection
     ok = ensure_connection()
     if not ok:
-        logger.warning("Elasticsearch not available at startup — logs may fail until it's up.")
+        logger.warning(
+            "Elasticsearch not available at startup — logs may fail until it's up."
+        )
     else:
         logger.info("Elasticsearch connection OK")
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -143,14 +148,26 @@ async def attach_user_middleware(request: Request, call_next):
 async def analytics_and_logging_middleware(request: Request, call_next):
     start = time.time()
     request_id = str(uuid.uuid4())
-    client_ip = request.client.host if request.client else request.headers.get("x-forwarded-for", "unknown")
+    client_ip = (
+        request.client.host
+        if request.client
+        else request.headers.get("x-forwarded-for", "unknown")
+    )
     try:
         response = await call_next(request)
     except Exception:
         latency = time.time() - start
-        logger.info({"event": "request", "request_id": request_id, "method": request.method,
-                     "path": request.url.path, "status": 500, "latency_ms": int(latency * 1000),
-                     "client_ip": client_ip})
+        logger.info(
+            {
+                "event": "request",
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status": 500,
+                "latency_ms": int(latency * 1000),
+                "client_ip": client_ip,
+            }
+        )
         try:
             r = app.state.redis
             r.incr(f"stats:hits:{request.url.path}")
@@ -160,9 +177,17 @@ async def analytics_and_logging_middleware(request: Request, call_next):
         raise
     latency = time.time() - start
     status = response.status_code
-    logger.info({"event": "request", "request_id": request_id, "method": request.method,
-                 "path": request.url.path, "status": status, "latency_ms": int(latency * 1000),
-                 "client_ip": client_ip})
+    logger.info(
+        {
+            "event": "request",
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status": status,
+            "latency_ms": int(latency * 1000),
+            "client_ip": client_ip,
+        }
+    )
     try:
         r = app.state.redis
         r.incr(f"stats:hits:{request.url.path}")

@@ -1,6 +1,5 @@
 # app/middleware/audit_logger.py
 import time
-import json
 import logging
 from fastapi import Request
 from fastapi.background import BackgroundTasks
@@ -11,6 +10,7 @@ from typing import Callable
 
 logger = logging.getLogger("audit_middleware")
 logger.setLevel(logging.INFO)
+
 
 def _truncate_text(text: str | bytes | None, max_chars: int):
     if text is None:
@@ -24,12 +24,14 @@ def _truncate_text(text: str | bytes | None, max_chars: int):
         return text[:max_chars] + "...(truncated)"
     return text
 
+
 class AuditLoggerMiddleware(BaseHTTPMiddleware):
     """
     Middleware that captures request metadata and sends an audit document to Elasticsearch.
     - Reads request body safely and restores it for downstream handlers.
     - Uses BackgroundTasks to index docs so response is not blocked.
     """
+
     async def dispatch(self, request: Request, call_next: Callable):
         start = time.time()
 
@@ -44,10 +46,14 @@ class AuditLoggerMiddleware(BaseHTTPMiddleware):
             return {"type": "http.request", "body": body_bytes}
 
         # attach a new receive() function so downstream handlers can read request.body() normally
-        request._receive = receive  # monkeypatching common pattern for BaseHTTPMiddleware
+        request._receive = (
+            receive  # monkeypatching common pattern for BaseHTTPMiddleware
+        )
 
         # capture basic context
-        user_id = request.headers.get("x-user-id") or request.headers.get("authorization")
+        user_id = request.headers.get("x-user-id") or request.headers.get(
+            "authorization"
+        )
         tenant = request.headers.get("x-tenant-id")
 
         try:
@@ -64,7 +70,7 @@ class AuditLoggerMiddleware(BaseHTTPMiddleware):
                 "request_body": _truncate_text(body_bytes, settings.MAX_BODY_CHARS),
                 "error": str(exc),
                 "duration_ms": duration_ms,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
             # try best-effort indexing (synchronous here) — do not fail the original exception
             try:
@@ -85,7 +91,7 @@ class AuditLoggerMiddleware(BaseHTTPMiddleware):
             "tenant": tenant,
             "request_body": _truncate_text(body_bytes, settings.MAX_BODY_CHARS),
             "duration_ms": duration_ms,
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
         # enqueue indexing as background task (fast and non-blocking)
@@ -104,6 +110,7 @@ class AuditLoggerMiddleware(BaseHTTPMiddleware):
             logger.exception("Failed to attach background task for audit indexing")
 
         return response
+
 
 async def _index_background_safe(doc: dict):
     """

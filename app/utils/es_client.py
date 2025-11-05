@@ -10,6 +10,7 @@ logger = logging.getLogger("es_client")
 # Initialize Elasticsearch client
 es = Elasticsearch([settings.ELASTICSEARCH_URL])
 
+
 def ensure_connection() -> bool:
     """
     Ensure Elasticsearch is reachable.
@@ -35,10 +36,7 @@ def index_audit(data: dict, index_name: str = "api_gateway_audit"):
             logger.warning("⚠️ Skipping audit — Elasticsearch not available")
             return None
 
-        doc = {
-            **data,
-            "timestamp": datetime.utcnow().isoformat()
-        }
+        doc = {**data, "timestamp": datetime.utcnow().isoformat()}
 
         res = es.index(index=index_name, document=doc)
         logger.info(f"📜 Audit indexed in {index_name}: {res.get('result', 'unknown')}")
